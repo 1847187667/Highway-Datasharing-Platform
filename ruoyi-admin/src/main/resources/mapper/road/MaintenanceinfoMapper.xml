@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.road.mapper.MaintenanceinfoMapper">
+    
+    <resultMap type="Maintenanceinfo" id="MaintenanceinfoResult">
+        <result property="id"    column="id"    />
+        <result property="maintenanceStartTime"    column="maintenance_start_time"    />
+        <result property="maintenanceEndTime"    column="maintenance_end_time"    />
+        <result property="maintenanceLocation"    column="maintenance_location"    />
+        <result property="maintenanceType"    column="maintenance_type"    />
+        <result property="updatedAt"    column="updated_at"    />
+        <result property="deptId"    column="dept_id"    />
+    </resultMap>
+
+    <resultMap id="MaintenanceinfoDeptResult" type="Maintenanceinfo" extends="MaintenanceinfoResult">
+        <collection property="deptList" ofType="Dept" column="id" select="selectDeptList" />
+    </resultMap>
+
+    <resultMap type="Dept" id="DeptResult">
+        <result property="deptId"    column="dept_id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="deptName"    column="dept_name"    />
+        <result property="leader"    column="leader"    />
+        <result property="phone"    column="phone"    />
+        <result property="email"    column="email"    />
+        <result property="status"    column="status"    />
+        <result property="createdBy"    column="created_by"    />
+    </resultMap>
+
+    <sql id="selectMaintenanceinfoVo">
+        select id, maintenance_start_time, maintenance_end_time, maintenance_location, maintenance_type, updated_at, dept_id from maintenanceinfo
+    </sql>
+
+    <select id="selectMaintenanceinfoList" parameterType="Maintenanceinfo" resultMap="MaintenanceinfoResult">
+        <include refid="selectMaintenanceinfoVo"/>
+        <where>  
+            <if test="maintenanceStartTime != null "> and maintenance_start_time = #{maintenanceStartTime}</if>
+            <if test="maintenanceEndTime != null "> and maintenance_end_time = #{maintenanceEndTime}</if>
+            <if test="maintenanceLocation != null  and maintenanceLocation != ''"> and maintenance_location = #{maintenanceLocation}</if>
+            <if test="maintenanceType != null  and maintenanceType != ''"> and maintenance_type = #{maintenanceType}</if>
+            <if test="updatedAt != null "> and updated_at = #{updatedAt}</if>
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+        </where>
+    </select>
+    
+    <select id="selectMaintenanceinfoById" parameterType="Long" resultMap="MaintenanceinfoDeptResult">
+        select id, maintenance_start_time, maintenance_end_time, maintenance_location, maintenance_type, updated_at, dept_id
+        from maintenanceinfo
+        where id = #{id}
+    </select>
+
+    <select id="selectDeptList" resultMap="DeptResult">
+        select dept_id, parent_id, dept_name, leader, phone, email, status, created_by
+        from dept
+        where dept_id = #{dept_id}
+    </select>
+
+    <insert id="insertMaintenanceinfo" parameterType="Maintenanceinfo" useGeneratedKeys="true" keyProperty="id">
+        insert into maintenanceinfo
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="maintenanceStartTime != null">maintenance_start_time,</if>
+            <if test="maintenanceEndTime != null">maintenance_end_time,</if>
+            <if test="maintenanceLocation != null">maintenance_location,</if>
+            <if test="maintenanceType != null">maintenance_type,</if>
+            <if test="updatedAt != null">updated_at,</if>
+            <if test="deptId != null">dept_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="maintenanceStartTime != null">#{maintenanceStartTime},</if>
+            <if test="maintenanceEndTime != null">#{maintenanceEndTime},</if>
+            <if test="maintenanceLocation != null">#{maintenanceLocation},</if>
+            <if test="maintenanceType != null">#{maintenanceType},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+            <if test="deptId != null">#{deptId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMaintenanceinfo" parameterType="Maintenanceinfo">
+        update maintenanceinfo
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="maintenanceStartTime != null">maintenance_start_time = #{maintenanceStartTime},</if>
+            <if test="maintenanceEndTime != null">maintenance_end_time = #{maintenanceEndTime},</if>
+            <if test="maintenanceLocation != null">maintenance_location = #{maintenanceLocation},</if>
+            <if test="maintenanceType != null">maintenance_type = #{maintenanceType},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMaintenanceinfoById" parameterType="Long">
+        delete from maintenanceinfo where id = #{id}
+    </delete>
+
+    <delete id="deleteMaintenanceinfoByIds" parameterType="String">
+        delete from maintenanceinfo where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteDeptByDeptIds" parameterType="String">
+        delete from dept where dept_id in 
+        <foreach item="deptId" collection="array" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteDeptByDeptId" parameterType="Long">
+        delete from dept where dept_id = #{deptId}
+    </delete>
+
+    <insert id="batchDept">
+        insert into dept( dept_id, parent_id, dept_name, leader, phone, email, status, created_by) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.deptId}, #{item.parentId}, #{item.deptName}, #{item.leader}, #{item.phone}, #{item.email}, #{item.status}, #{item.createdBy})
+        </foreach>
+    </insert>
+</mapper>

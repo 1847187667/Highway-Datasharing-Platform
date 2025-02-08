@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TrafficStatusScreenMapper">
+
+    <resultMap type="com.ruoyi.system.domain.TrafficStatusScreen" id="TrafficStatusScreenResult">
+        <id     property="id"                      column="id"/>
+        <result property="trafficVolume"           column="traffic_volume"/>
+        <result property="averageSpeed"            column="average_speed"/>
+        <result property="congestionDescription"   column="congestion_description"/>
+        <result property="vehicleTypeDistribution" column="vehicle_type_distribution"/>
+        <result property="updatedAt"               column="updated_at"/>
+        <result property="deptId"                  column="dept_id"/>
+    </resultMap>
+
+    <!-- 获取最近24小时的交通流量趋势 -->
+    <select id="getHourlyTraffic" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(updated_at, '%H:00') as hour,
+            traffic_volume as value
+        FROM trafficstatus
+        WHERE updated_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        ORDER BY updated_at ASC
+    </select>
+
+    <!-- 获取最新的车型分布 -->
+    <select id="getVehicleTypeDistribution" resultType="java.util.Map">
+        SELECT 
+            vehicle_type_distribution as distribution
+        FROM trafficstatus
+        ORDER BY updated_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 获取最近24小时的平均速度趋势 -->
+    <select id="getSpeedTrend" resultType="java.util.Map">
+        SELECT 
+            DATE_FORMAT(updated_at, '%H:00') as hour,
+            average_speed as speed,
+            congestion_description as status
+        FROM trafficstatus
+        WHERE updated_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        ORDER BY updated_at ASC
+    </select>
+
+    <!-- 获取最新的交通状态 -->
+    <select id="getLatestTrafficStatus" resultMap="TrafficStatusScreenResult">
+        SELECT 
+            id,
+            traffic_volume,
+            average_speed,
+            congestion_description,
+            vehicle_type_distribution,
+            updated_at,
+            dept_id
+        FROM trafficstatus
+        ORDER BY updated_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 获取最新的10条交通数据 -->
+    <select id="getLatestTrafficData" resultMap="TrafficStatusScreenResult">
+        SELECT 
+            id,
+            COALESCE(traffic_volume, 0) as traffic_volume,
+            COALESCE(average_speed, 0) as average_speed,
+            COALESCE(congestion_description, '') as congestion_description,
+            COALESCE(vehicle_type_distribution, '') as vehicle_type_distribution,
+            updated_at,
+            dept_id
+        FROM trafficstatus
+        WHERE vehicle_type_distribution IS NOT NULL
+        /*AND updated_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) 用于筛选24小时内的数据*/
+        ORDER BY updated_at DESC
+        LIMIT 10
+    </select>
+
+    <!-- 获取事故类型统计数据 -->
+    <select id="getAccidentTypeStats" resultType="java.util.Map"> /*resultType="java.util.Map"会使查询结果会被转换成键值对的形式，其中键是列名，值是列对应的值。键值对对应mapper文件中对应方法的返回值类型*/
+        SELECT 
+            accident_type as type,
+            COUNT(*) as value
+        FROM accidentdata
+        WHERE accident_type IS NOT NULL
+        GROUP BY accident_type
+    </select>
+
+    <!-- 获取交通管制原因统计 -->
+    <select id="getControlReasonStats" resultType="java.util.Map">
+        SELECT 
+            control_reason as type,
+            COUNT(*) as value
+        FROM trafficcontrol
+        WHERE control_reason IS NOT NULL
+        /*AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)*/ /*用于筛选30天内的数据*/
+        GROUP BY control_reason
+    </select>
+
+    <!-- 获取维护类型统计 -->
+    <select id="getMaintenanceTypeStats" resultType="java.util.Map">
+        SELECT 
+            maintenance_type as type,
+            COUNT(*) as value
+        FROM maintenanceinfo
+        WHERE maintenance_type IS NOT NULL
+        /*AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)*/ /*用于筛选30天内的数据*/
+        GROUP BY maintenance_type
+    </select>
+
+    <!-- 获取紧急事件类型统计 -->
+    <select id="getEventTypeStats" resultType="java.util.Map">
+        SELECT 
+            event_type as type,
+            COUNT(*) as value
+        FROM emergencyevents
+        WHERE event_type IS NOT NULL
+        /*AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)*/ /*用于筛选30天内的数据*/
+        GROUP BY event_type
+    </select>
+
+</mapper> 

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.road.mapper.TrafficstatusMapper">
+    
+    <resultMap type="Trafficstatus" id="TrafficstatusResult">
+        <result property="id"    column="id"    />
+        <result property="trafficVolume"    column="traffic_volume"    />
+        <result property="averageSpeed"    column="average_speed"    />
+        <result property="congestionDescription"    column="congestion_description"    />
+        <result property="vehicleTypeDistribution"    column="vehicle_type_distribution"    />
+        <result property="updatedAt"    column="updated_at"    />
+        <result property="deptId"    column="dept_id"    />
+    </resultMap>
+
+    <resultMap id="TrafficstatusDeptResult" type="Trafficstatus" extends="TrafficstatusResult">
+        <collection property="deptList" ofType="Dept" column="id" select="selectDeptList" />
+    </resultMap>
+
+    <resultMap type="Dept" id="DeptResult">
+        <result property="deptId"    column="dept_id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="deptName"    column="dept_name"    />
+        <result property="leader"    column="leader"    />
+        <result property="phone"    column="phone"    />
+        <result property="email"    column="email"    />
+        <result property="status"    column="status"    />
+        <result property="createdBy"    column="created_by"    />
+    </resultMap>
+
+    <sql id="selectTrafficstatusVo">
+        select id, traffic_volume, average_speed, congestion_description, vehicle_type_distribution, updated_at, dept_id from trafficstatus
+    </sql>
+
+    <select id="selectTrafficstatusList" parameterType="Trafficstatus" resultMap="TrafficstatusResult">
+        <include refid="selectTrafficstatusVo"/>
+        <where>  
+            <if test="trafficVolume != null "> and traffic_volume = #{trafficVolume}</if>
+            <if test="averageSpeed != null "> and average_speed = #{averageSpeed}</if>
+            <if test="congestionDescription != null  and congestionDescription != ''"> and congestion_description = #{congestionDescription}</if>
+            <if test="vehicleTypeDistribution != null  and vehicleTypeDistribution != ''"> and vehicle_type_distribution = #{vehicleTypeDistribution}</if>
+            <if test="updatedAt != null "> and updated_at = #{updatedAt}</if>
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+        </where>
+        order by updated_at desc
+    </select>
+    
+    <select id="selectTrafficstatusById" parameterType="Long" resultMap="TrafficstatusDeptResult">
+        select id, traffic_volume, average_speed, congestion_description, vehicle_type_distribution, updated_at, dept_id
+        from trafficstatus
+        where id = #{id}
+    </select>
+
+    <select id="selectDeptList" resultMap="DeptResult">
+        select dept_id, parent_id, dept_name, leader, phone, email, status, created_by
+        from dept
+        where dept_id = #{dept_id}
+    </select>
+
+    <insert id="insertTrafficstatus" parameterType="Trafficstatus" useGeneratedKeys="true" keyProperty="id">
+        insert into trafficstatus
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="trafficVolume != null">traffic_volume,</if>
+            <if test="averageSpeed != null">average_speed,</if>
+            <if test="congestionDescription != null">congestion_description,</if>
+            <if test="vehicleTypeDistribution != null">vehicle_type_distribution,</if>
+            <if test="updatedAt != null">updated_at,</if>
+            <if test="deptId != null">dept_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="trafficVolume != null">#{trafficVolume},</if>
+            <if test="averageSpeed != null">#{averageSpeed},</if>
+            <if test="congestionDescription != null">#{congestionDescription},</if>
+            <if test="vehicleTypeDistribution != null">#{vehicleTypeDistribution},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+            <if test="deptId != null">#{deptId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTrafficstatus" parameterType="Trafficstatus">
+        update trafficstatus
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="trafficVolume != null">traffic_volume = #{trafficVolume},</if>
+            <if test="averageSpeed != null">average_speed = #{averageSpeed},</if>
+            <if test="congestionDescription != null">congestion_description = #{congestionDescription},</if>
+            <if test="vehicleTypeDistribution != null">vehicle_type_distribution = #{vehicleTypeDistribution},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTrafficstatusById" parameterType="Long">
+        delete from trafficstatus where id = #{id}
+    </delete>
+
+    <delete id="deleteTrafficstatusByIds" parameterType="String">
+        delete from trafficstatus where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteDeptByDeptIds" parameterType="String">
+        delete from dept where dept_id in 
+        <foreach item="deptId" collection="array" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteDeptByDeptId" parameterType="Long">
+        delete from dept where dept_id = #{deptId}
+    </delete>
+
+    <insert id="batchDept">
+        insert into dept( dept_id, parent_id, dept_name, leader, phone, email, status, created_by) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.deptId}, #{item.parentId}, #{item.deptName}, #{item.leader}, #{item.phone}, #{item.email}, #{item.status}, #{item.createdBy})
+        </foreach>
+    </insert>
+</mapper>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.road.mapper.MeteorologicaldataMapper">
+    
+    <resultMap type="Meteorologicaldata" id="MeteorologicaldataResult">
+        <result property="id"    column="id"    />
+        <result property="temperature"    column="temperature"    />
+        <result property="humidity"    column="humidity"    />
+        <result property="windSpeed"    column="wind_speed"    />
+        <result property="rainfall"    column="rainfall"    />
+        <result property="snowfall"    column="snowfall"    />
+        <result property="extremeWeatherWarning"    column="extreme_weather_warning"    />
+        <result property="updatedAt"    column="updated_at"    />
+        <result property="deptId"    column="dept_id"    />
+    </resultMap>
+
+    <resultMap id="MeteorologicaldataDeptResult" type="Meteorologicaldata" extends="MeteorologicaldataResult">
+        <collection property="deptList" ofType="Dept" column="id" select="selectDeptList" />
+    </resultMap>
+
+    <resultMap type="Dept" id="DeptResult">
+        <result property="deptId"    column="dept_id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="deptName"    column="dept_name"    />
+        <result property="leader"    column="leader"    />
+        <result property="phone"    column="phone"    />
+        <result property="email"    column="email"    />
+        <result property="status"    column="status"    />
+        <result property="createdBy"    column="created_by"    />
+    </resultMap>
+
+    <sql id="selectMeteorologicaldataVo">
+        select id, temperature, humidity, wind_speed, rainfall, snowfall, extreme_weather_warning, updated_at, dept_id from meteorologicaldata
+    </sql>
+
+    <select id="selectMeteorologicaldataList" parameterType="Meteorologicaldata" resultMap="MeteorologicaldataResult">
+        <include refid="selectMeteorologicaldataVo"/>
+        <where>  
+            <if test="temperature != null "> and temperature = #{temperature}</if>
+            <if test="humidity != null "> and humidity = #{humidity}</if>
+            <if test="windSpeed != null "> and wind_speed = #{windSpeed}</if>
+            <if test="rainfall != null "> and rainfall = #{rainfall}</if>
+            <if test="snowfall != null "> and snowfall = #{snowfall}</if>
+            <if test="extremeWeatherWarning != null  and extremeWeatherWarning != ''"> and extreme_weather_warning = #{extremeWeatherWarning}</if>
+            <if test="updatedAt != null "> and updated_at = #{updatedAt}</if>
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+        </where>
+        <!-- RuoYi框架会自动处理排序参数，无需手动添加order by语句 -->
+    </select>
+    
+    <select id="selectMeteorologicaldataById" parameterType="Long" resultMap="MeteorologicaldataDeptResult">
+        select id, temperature, humidity, wind_speed, rainfall, snowfall, extreme_weather_warning, updated_at, dept_id
+        from meteorologicaldata
+        where id = #{id}
+    </select>
+
+    <select id="selectDeptList" resultMap="DeptResult">
+        select dept_id, parent_id, dept_name, leader, phone, email, status, created_by
+        from dept
+        where dept_id = #{dept_id}
+    </select>
+
+    <insert id="insertMeteorologicaldata" parameterType="Meteorologicaldata" useGeneratedKeys="true" keyProperty="id">
+        insert into meteorologicaldata
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="temperature != null">temperature,</if>
+            <if test="humidity != null">humidity,</if>
+            <if test="windSpeed != null">wind_speed,</if>
+            <if test="rainfall != null">rainfall,</if>
+            <if test="snowfall != null">snowfall,</if>
+            <if test="extremeWeatherWarning != null">extreme_weather_warning,</if>
+            <if test="updatedAt != null">updated_at,</if>
+            <if test="deptId != null">dept_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="temperature != null">#{temperature},</if>
+            <if test="humidity != null">#{humidity},</if>
+            <if test="windSpeed != null">#{windSpeed},</if>
+            <if test="rainfall != null">#{rainfall},</if>
+            <if test="snowfall != null">#{snowfall},</if>
+            <if test="extremeWeatherWarning != null">#{extremeWeatherWarning},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+            <if test="deptId != null">#{deptId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMeteorologicaldata" parameterType="Meteorologicaldata">
+        update meteorologicaldata
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="temperature != null">temperature = #{temperature},</if>
+            <if test="humidity != null">humidity = #{humidity},</if>
+            <if test="windSpeed != null">wind_speed = #{windSpeed},</if>
+            <if test="rainfall != null">rainfall = #{rainfall},</if>
+            <if test="snowfall != null">snowfall = #{snowfall},</if>
+            <if test="extremeWeatherWarning != null">extreme_weather_warning = #{extremeWeatherWarning},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMeteorologicaldataById" parameterType="Long">
+        delete from meteorologicaldata where id = #{id}
+    </delete>
+
+    <delete id="deleteMeteorologicaldataByIds" parameterType="String">
+        delete from meteorologicaldata where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteDeptByDeptIds" parameterType="String">
+        delete from dept where dept_id in 
+        <foreach item="deptId" collection="array" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteDeptByDeptId" parameterType="Long">
+        delete from dept where dept_id = #{deptId}
+    </delete>
+
+    <insert id="batchDept">
+        insert into dept( dept_id, parent_id, dept_name, leader, phone, email, status, created_by) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.deptId}, #{item.parentId}, #{item.deptName}, #{item.leader}, #{item.phone}, #{item.email}, #{item.status}, #{item.createdBy})
+        </foreach>
+    </insert>
+</mapper>
