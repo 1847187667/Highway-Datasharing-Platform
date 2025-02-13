@@ -87,22 +87,8 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
-  },
-  {
-    path: '/datascreen',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/views/datascreen/index'),
-        name: 'DataScreen',
-        meta: { 
-          title: '数据大屏',
-          icon: 'dashboard'
-        }
-      }
-    ]
   }
+  
 ]
 
 // 动态路由，基于用户权限动态去加载
@@ -174,6 +160,22 @@ export const dynamicRoutes = [
         component: () => import('@/views/tool/gen/editTable'),
         name: 'GenEdit',
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
+      }
+    ]
+  },
+  {
+    path: '/datascreen',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/datascreen/index'),
+        name: 'DataScreen',
+        meta: { 
+          title: '数据大屏',
+          icon: 'dashboard',
+          noCache: true  // 不缓存页面
+        }
       }
     ]
   }
